@@ -1,0 +1,5 @@
+{
+    "allowedDistance": 5,
+    "delimiters": ["&", ";", ","],
+    "verifyAlbum": false
+}
