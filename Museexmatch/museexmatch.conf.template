@@ -1,5 +1,7 @@
 {
-    "allowedDistance": 5,
-    "delimiters": ["&", ";", ","],
-    "verifyAlbum": false
+  "allowedDistance": 5,
+  "delimiters": [ "&", ";", "," ],
+  "verifyAlbum": false,
+  "addLyricsSource": false,
+  "trimTitle": false
 }

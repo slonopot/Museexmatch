@@ -28,6 +28,7 @@ namespace Museexmatch
         private char[] Delimiters = { }; //delimiters to remove additional authors from the string
         private bool VerifyAlbum = false;
         private bool AddLyricsSource = false;
+        private bool TrimTitle = true;
         public MusixmatchClient(string lyricsProviderName = null)
         {
             LyricsProviderName = lyricsProviderName;
@@ -48,6 +49,8 @@ namespace Museexmatch
                     VerifyAlbum = (bool)config.verifyAlbum;
                 if (Util.PropertyExists(config, "addLyricsSource"))
                     AddLyricsSource = (bool)config.addLyricsSource;
+                if (Util.PropertyExists(config, "trimTitle"))
+                    TrimTitle = (bool)config.trimTitle;
 
                 if (Util.PropertyExists(config, "hmacSHA1Key"))
                     HmacSHA1Key = config.hmacSHA1Key;
@@ -57,8 +60,9 @@ namespace Museexmatch
                 if (Util.PropertyExists(config, "userToken"))
                     UserToken = config.userToken;
 
-                Logger.Info("Configuration file was used: allowedDistance={allowedDistance}, delimiters={delimiters}, verifyAlbum={verifyAlbum}", AllowedDistance, Delimiters, VerifyAlbum);
+                Logger.Info("Configuration file was used: allowedDistance={allowedDistance}, delimiters={delimiters}, verifyAlbum={verifyAlbum}, addLyricsSource={addLyricsSource}, trimTitle={trimTitle}", AllowedDistance, Delimiters, VerifyAlbum, AddLyricsSource, TrimTitle);
             }
+            else { Logger.Info("No configuration file was provided, defaults were used"); }
             if (string.IsNullOrEmpty(UserToken))
             {
                 UserToken = GetUserToken();
@@ -74,7 +78,7 @@ namespace Museexmatch
 
                 Logger.Info("Got new user token");
             }
-            else { Logger.Info("No configuration file was provided, defaults were used"); }
+           
         }
 
         private string GetUserToken()
@@ -140,7 +144,13 @@ namespace Museexmatch
 
         public string getLyrics(string artist, string title, string album)
         {
-            Logger.Info("Attempting to search for {aritst} - {title} ({album})", artist, title);
+            artist = artist.Trim();
+            title = title.Trim();
+            album = album.Trim();
+
+            if (TrimTitle) { title = Util.Trim(title); }
+
+            Logger.Info("Attempting to search for {aritst} - {title} ({album})", artist, title, album);
 
             string result = search(artist, title, album);
             if (string.IsNullOrEmpty(result) && Delimiters.Length > 0)
