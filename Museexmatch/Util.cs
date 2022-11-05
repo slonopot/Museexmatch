@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Museexmatch
@@ -115,6 +116,15 @@ namespace Museexmatch
             HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(key));
             byte[] result = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
             return Convert.ToBase64String(result);
+        }
+
+        internal static string Trim(string title)
+        {
+            title = Regex.Replace(title, @"\[.*\]", "");
+            title = Regex.Replace(title, @"\(.*\)", "");
+            title = Regex.Replace(title, @"\<.*\>", "");
+            title = Regex.Replace(title, @"\{.*\}", "");
+            return title.Trim();
         }
     }
 }
