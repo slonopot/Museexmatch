@@ -22,14 +22,16 @@ Create museexmatch.conf in the Plugins directory and use this template:
         "allowedDistance": 5,
         "delimiters": ["&", ";", ","],
         "verifyAlbum": false,
-        "addLyricsSource": false
+        "addLyricsSource": false,
+        "trimTitle": false
     }
 
-museexmatch.conf includes four options. You are allowed to use only ones you need, just omit the line and don't forget about commas in JSON.
+museexmatch.conf includes several options. You are allowed to use only ones you need, just omit the line and don't forget about commas in JSON.
 1. Configurable title distance for minor differences. Defaults to 5. This means that a present N-character difference in search results won't affect the filtering and be considered a hit.
 2. Configurable artist delimiters ("A & B, C" => "A"). Defaults to none. Useful when you have several artists for the track but Musixmatch includes only the main one.
 3. Configurable album verification. Plugin will check if the album is the same. Names must be identical.
 4. Configurable lyrics source marker. Plugin will append "Source: Musixmatch via Museexmatch" to the lyrics' beginning if enabled.
+5. Configurable title trim. This option will remove all content in brackets from the title. By default MusicBee removes only features in the round brackets, this option will remove all content in `[]`, `{}`, `<>` and `()`.
 
 Restart MusicBee to apply changes.
 
@@ -44,4 +46,5 @@ You can find log at `%APPDATA%\MusicBee\museexmatch.log`.
 
 ### Shoutouts
 https://github.com/toptensoftware/JsonKit
+
 https://nlog-project.org/
