@@ -11,8 +11,9 @@ namespace MusicBeePlugin
     {
         private static Logger Logger;
 
-        public static string configFile = "./Plugins/museexmatch.conf";
+        public static string configFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\museexmatch.conf");
         public static string logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\museexmatch.log");
+        public static string name = "Museexmatch";
 
         private MusicBeeApiInterface musicBee;
         private PluginInfo info = new PluginInfo();
@@ -24,14 +25,14 @@ namespace MusicBeePlugin
             musicBee.Initialise(apiPtr);
 
             info.PluginInfoVersion = PluginInfoVersion;
-            info.Name = "Museexmatch";
+            info.Name = name;
             info.Description = "Musixmatch support for MusicBee";
             info.Author = "slonopot";
             info.TargetApplication = "MusicBee";
             info.Type = PluginType.LyricsRetrieval;
             info.VersionMajor = 1;
             info.VersionMinor = 0;
-            info.Revision = 1;
+            info.Revision = 2;
             info.MinInterfaceVersion = 20;
             info.MinApiRevision = 25;
             info.ReceiveNotifications = ReceiveNotificationFlags.StartupOnly;
@@ -39,24 +40,30 @@ namespace MusicBeePlugin
 
             try
             {
-                var logfile = new NLog.Targets.FileTarget()
+                var target = new NLog.Targets.FileTarget(name)
                 {
                     FileName = logFile,
                     Layout = "${date} | ${level} | ${callsite} | ${message}",
                     DeleteOldFileOnStartup = true,
-                    Name = "Museexmatch"
+                    Name = name
                 };
                 if (LogManager.Configuration == null)
                 {
                     var config = new NLog.Config.LoggingConfiguration();
-                    config.AddRuleForAllLevels(logfile, "Museexmatch");
+                    config.AddTarget(target);
+                    config.AddRuleForAllLevels(target, name);
                     LogManager.Configuration = config;
 
                 }
                 else
-                    LogManager.Configuration.AddRuleForAllLevels(logfile, "Museexmatch");
+                {
+                    LogManager.Configuration.AddTarget(target);
+                    LogManager.Configuration.AddRuleForAllLevels(target, name);
+                }
 
-                Logger = LogManager.GetLogger("Museexmatch");
+                LogManager.ReconfigExistingLoggers();
+
+                Logger = LogManager.GetLogger(name);
 
                 musixmatchClient = new MusixmatchClient(MuseexmatchLyricsProvider);
             }
