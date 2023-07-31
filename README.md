@@ -8,12 +8,7 @@ This plugin is made and published exclusively for educational purposes. The plug
 Using private Musixmatch API to get lyrics.
 
 ### Installation
-<<<<<<< HEAD
 Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory.
-=======
-Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory (or whatever you've installed your MusicBee to).
-If you use [Beenius](https://github.com/slonopot/Beenius/releases/), update it as well.
->>>>>>> 9bffb43b4223d12526ae92539eeaaebc10276c30
 
 ### Activation
 Preferences -> Plugins -> Enable Museexmatch.  
