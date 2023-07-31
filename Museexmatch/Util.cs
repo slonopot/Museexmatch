@@ -118,7 +118,7 @@ namespace Museexmatch
             return Convert.ToBase64String(result);
         }
 
-        internal static string Trim(string title)
+        public static string Trim(string title)
         {
             title = Regex.Replace(title, @"\[.*\]", "");
             title = Regex.Replace(title, @"\(.*\)", "");

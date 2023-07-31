@@ -14,7 +14,7 @@ namespace Museexmatch
 {
     public class MusixmatchClient
     {
-        private static Logger Logger = LogManager.GetLogger("Museexmatch");
+        private static Logger Logger = LogManager.GetLogger(Plugin.name);
 
         private HttpClient client = new HttpClient();
 
@@ -28,7 +28,7 @@ namespace Museexmatch
         private char[] Delimiters = { }; //delimiters to remove additional authors from the string
         private bool VerifyAlbum = false;
         private bool AddLyricsSource = false;
-        private bool TrimTitle = true;
+        private bool TrimTitle = false;
         public MusixmatchClient(string lyricsProviderName = null)
         {
             LyricsProviderName = lyricsProviderName;
