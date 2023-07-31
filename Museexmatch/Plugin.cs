@@ -11,7 +11,7 @@ namespace MusicBeePlugin
     {
         private static Logger Logger;
 
-        public static string configFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\museexmatch.conf");
+        public static string configFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\Plugins\museexmatch.conf");
         public static string logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\museexmatch.log");
         public static string name = "Museexmatch";
 
