@@ -7,7 +7,7 @@ namespace Museexmatch_Tester
         static void Main(string[] args)
         {
             MusixmatchClient client = new MusixmatchClient();
-            var result = client.getLyrics("Ramirez", "Intro [JEJ]", "tha playa$ manual [jej]");
+            var result = client.getLyrics("Coldplay", "Princess Of China [feat. Rihanna]", "tha playa$ manual [jej]");
             return;
         }
     }

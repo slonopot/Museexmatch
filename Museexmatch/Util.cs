@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Topten.JsonKit;
 
 namespace Museexmatch
 {
@@ -126,5 +127,52 @@ namespace Museexmatch
             title = Regex.Replace(title, @"\{.*\}", "");
             return title.Trim();
         }
+
+        public static string ConvertRichsyncToLRC(string richsync)
+        {
+            dynamic content = Json.Parse<object>(richsync);
+            var result = string.Empty;
+
+            foreach (dynamic segment in content)
+            {
+                var startTS = TimeSpan.FromSeconds(segment.ts);
+                var start = startTS.ToString(@"mm\:ss") + "." + startTS.ToString("fffffff").Substring(0, 2);
+                result += $"[{start}]{segment.x}\n";
+            }
+
+            return result;
+        }
+        public static string ConvertRichsyncToAdvancedLRC(string richsync)
+        {
+            dynamic content = Json.Parse<object>(richsync);
+            var result = string.Empty;
+
+            foreach (dynamic segment in content)
+            {
+                var startTS = TimeSpan.FromSeconds(segment.ts);
+                var start = startTS.ToString(@"mm\:ss") + "." + startTS.ToString("fffffff").Substring(0, 2);
+                var text = string.Empty;
+                try
+                {
+                    var _text = string.Empty;
+                    foreach (dynamic subsegment in segment.l)
+                    {
+                        var subStartTS = TimeSpan.FromSeconds(segment.ts + subsegment.o);
+                        var subStart = subStartTS.ToString(@"mm\:ss") + "." + startTS.ToString("fffffff").Substring(0, 2);
+                        _text += $"<{subStart}>{subsegment.c}";
+                    }
+                    text = _text;
+                }
+                catch (Exception ex)
+                {
+                    text = segment.x;
+                }
+               result += $"[{start}]{text}\n";
+            }
+
+            return result;
+        }
+
+
     }
 }
