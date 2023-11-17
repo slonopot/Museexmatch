@@ -3,5 +3,7 @@
   "delimiters": [ "&", ";", "," ],
   "verifyAlbum": false,
   "addLyricsSource": false,
-  "trimTitle": false
+  "trimTitle": false,
+  "preferSyncedLyrics": false,
+  "onlySyncedLyrics": false
 }

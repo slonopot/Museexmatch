@@ -5,15 +5,10 @@ It's just a lyrics provider.
 This plugin is made and published exclusively for educational purposes. The plugin uses the private Musixmatch API and may stop working whenever the legal owners decide to take action. I take no responsibility, if someone asks then it wasn't me.
 
 ### Features
-Using private Musixmatch API to get lyrics.
+Using private Musixmatch API to get lyrics. Synced lyrics are supported.
 
 ### Installation
-<<<<<<< HEAD
 Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory.
-=======
-Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory (or whatever you've installed your MusicBee to).
-If you use [Beenius](https://github.com/slonopot/Beenius/releases/), update it as well.
->>>>>>> 9bffb43b4223d12526ae92539eeaaebc10276c30
 
 ### Activation
 Preferences -> Plugins -> Enable Museexmatch.  
@@ -27,7 +22,9 @@ Create museexmatch.conf in the Plugins directory and use this template:
         "delimiters": ["&", ";", ","],
         "verifyAlbum": false,
         "addLyricsSource": false,
-        "trimTitle": false
+        "trimTitle": false,
+        "preferSyncedLyrics": false,
+        "onlySyncedLyrics": false
     }
 
 museexmatch.conf includes several options. You are allowed to use only ones you need, just omit the line and don't forget about commas in JSON.
@@ -36,7 +33,8 @@ museexmatch.conf includes several options. You are allowed to use only ones you 
 3. Configurable album verification. Plugin will check if the album is the same. Names must be identical.
 4. Configurable lyrics source marker. Plugin will append "Source: Musixmatch via Museexmatch" to the lyrics' beginning if enabled.
 5. Configurable title trim. This option will remove all content in brackets from the title. By default MusicBee removes only features in the round brackets, this option will remove all content in `[]`, `{}`, `<>` and `()`.
-
+6. Configurable synced lyrics preference. Plugin will return synced lyrics in LRC format. Advanced LRC (split by words) is not supported by MusicBee.
+7. Configurable synced lyrics preference (forced). Plugin will only return synced lyrics in LRC format and pass the request to another plugin if not found. This allows to choose synced Musixmatch first and text Genius second, for example.
 Restart MusicBee to apply changes.
 
 ### Logic

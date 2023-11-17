@@ -29,6 +29,8 @@ namespace Museexmatch
         private bool VerifyAlbum = false;
         private bool AddLyricsSource = false;
         private bool TrimTitle = false;
+        private bool PreferSyncedLyrics = true;
+        private bool OnlySyncedLyrics = false;
         public MusixmatchClient(string lyricsProviderName = null)
         {
             LyricsProviderName = lyricsProviderName;
@@ -36,7 +38,7 @@ namespace Museexmatch
             client.DefaultRequestHeaders.Remove("User-Agent");
             client.DefaultRequestHeaders.Add("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 13; Pixel 7 (Whatever))");
             client.DefaultRequestHeaders.Add("x-mxm-endpoint", "default");
-
+  
             if (File.Exists(Plugin.configFile))
             {
                 string data = File.ReadAllText(Plugin.configFile);
@@ -51,6 +53,10 @@ namespace Museexmatch
                     AddLyricsSource = (bool)config.addLyricsSource;
                 if (Util.PropertyExists(config, "trimTitle"))
                     TrimTitle = (bool)config.trimTitle;
+                if (Util.PropertyExists(config, "preferSyncedLyrics"))
+                    PreferSyncedLyrics = (bool)config.preferSyncedLyrics;
+                if (Util.PropertyExists(config, "onlySyncedLyrics"))
+                    OnlySyncedLyrics = (bool)config.onlySyncedLyrics;
 
                 if (Util.PropertyExists(config, "hmacSHA1Key"))
                     HmacSHA1Key = config.hmacSHA1Key;
@@ -60,7 +66,7 @@ namespace Museexmatch
                 if (Util.PropertyExists(config, "userToken"))
                     UserToken = config.userToken;
 
-                Logger.Info("Configuration file was used: allowedDistance={allowedDistance}, delimiters={delimiters}, verifyAlbum={verifyAlbum}, addLyricsSource={addLyricsSource}, trimTitle={trimTitle}", AllowedDistance, Delimiters, VerifyAlbum, AddLyricsSource, TrimTitle);
+                Logger.Info("Configuration file was used: allowedDistance={allowedDistance}, delimiters={delimiters}, verifyAlbum={verifyAlbum}, addLyricsSource={addLyricsSource}, trimTitle={trimTitle}, preferSyncedLyrics={preferSyncedLyrics}, onlySyncedLyrics={onlySyncedLyrics}", AllowedDistance, Delimiters, VerifyAlbum, AddLyricsSource, TrimTitle, PreferSyncedLyrics, OnlySyncedLyrics);
             }
             else { Logger.Info("No configuration file was provided, defaults were used"); }
             if (string.IsNullOrEmpty(UserToken))
@@ -88,7 +94,7 @@ namespace Museexmatch
             parameters.Add("referal", "utm_source=google-play&utm_medium=organic");
             parameters.Add("root", "0");
             parameters.Add("sideloaded", "0");
-            parameters.Add("build_number", "2022090901");
+            parameters.Add("build_number", "2023110301");
             parameters.Add("guid", Util.GenerateHex(16));
             parameters.Add("lang", "en_US");
             parameters.Add("model", "manufacturer/Google brand/Pixel model/Whatever");
@@ -224,16 +230,37 @@ namespace Museexmatch
 
             req.Clear();
             req.Add("track_id", chosenMatch.track_id.ToString());
+            req.Add("optional_calls", "track.richsync");
 
             dynamic lyrics = MusixmatchRequest("macro.subtitles.get", req);
             var data = (IDictionary<string, dynamic>)lyrics.macro_calls;
 
-            var result = data["track.lyrics.get"].message.body.lyrics.lyrics_body;
+            var result = String.Empty;
 
-            Logger.Info("Found lyrics");
+            if (PreferSyncedLyrics || OnlySyncedLyrics)
+            {
+                try
+                {
+                    var exists = data["track.richsync.get"].message.header.status_code;
+                    if (exists == 200)
+                    {
+                        Logger.Info("Found synced lyrics");
+                        var richsync_result = data["track.richsync.get"].message.body.richsync.richsync_body;
+                        result = Util.ConvertRichsyncToLRC(richsync_result);
+                    } 
+                }
+                catch (Exception ex)
+                {
+                    Logger.Info($"Error getting richsync lyrics: {ex.Message}");
+                }
+            }
+            if (string.IsNullOrEmpty(result)) {
+                if (OnlySyncedLyrics) return null;
+                result = data["track.lyrics.get"].message.body.lyrics.lyrics_body;
 
-            if (AddLyricsSource)
-                result = $"Source: {LyricsProviderName}\n\n" + result;
+                if (AddLyricsSource)
+                    result = $"Source: {LyricsProviderName}\n\n" + result;
+            }
 
             return result;
         }
