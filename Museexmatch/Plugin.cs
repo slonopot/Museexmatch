@@ -32,7 +32,7 @@ namespace MusicBeePlugin
             info.Type = PluginType.LyricsRetrieval;
             info.VersionMajor = 1;
             info.VersionMinor = 0;
-            info.Revision = 3;
+            info.Revision = 4;
             info.MinInterfaceVersion = 20;
             info.MinApiRevision = 25;
             info.ReceiveNotifications = ReceiveNotificationFlags.StartupOnly;
