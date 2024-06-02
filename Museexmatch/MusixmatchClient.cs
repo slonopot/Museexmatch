@@ -209,8 +209,10 @@ namespace Museexmatch
                     break;
                 }
 
-                foreach (var alias in match.artist.artist_alias_list)
+                foreach (var _alias in match.artist.artist_alias_list)
                 {
+                    var alias = _alias;
+                    if (_alias is ExpandoObject) alias = _alias.artist_alias;
                     if (Util.ValidateResult(artist, title, alias, match.track_name, AllowedDistance))
                     {
                         chosenMatch = match;
