@@ -56,7 +56,7 @@ namespace Museexmatch
                 if (Util.PropertyExists(config, "preferSyncedLyrics"))
                     PreferSyncedLyrics = (bool)config.preferSyncedLyrics;
                 if (Util.PropertyExists(config, "onlySyncedLyrics"))
-                    OnlySyncedLyrics = true || (bool)config.onlySyncedLyrics;
+                    OnlySyncedLyrics = (bool)config.onlySyncedLyrics;
 
                 if (Util.PropertyExists(config, "hmacSHA1Key"))
                     HmacSHA1Key = config.hmacSHA1Key;
@@ -182,16 +182,17 @@ namespace Museexmatch
             Logger.Debug("artist={artist}, title={title}, album={album}", artist, title, album);
 
             var req = new NameValueCollection();
-            req.Add("q", artist + " " + title);
+            req.Add("q_track", title);
+            req.Add("q_artist", artist);
             req.Add("part", "track_artist,artist_image");
             req.Add("track_fields_set", "android_track_list");
             req.Add("artist_fields_set", "android_track_list_artist");
             req.Add("page", "1");
             req.Add("page_size", "100");
 
-            dynamic searchResults = MusixmatchRequest("macro.search", req);
+            dynamic searchResults = MusixmatchRequest("track.search", req);
             
-            var matches = searchResults.macro_result_list.track_list;
+            var matches = searchResults.track_list;
             if (matches.Count == 0) { return null; }
 
             dynamic chosenMatch = null;
@@ -244,7 +245,7 @@ namespace Museexmatch
                 try
                 {
                     var available = data["track.subtitles.get"].message.header.available;
-                    if (available == 1)
+                    if (available > 0)
                     {
                         Logger.Info("Found synced lyrics");
                         result = data["track.subtitles.get"].message.body.subtitle_list[0].subtitle.subtitle_body;
