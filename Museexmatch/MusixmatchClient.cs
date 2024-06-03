@@ -56,7 +56,7 @@ namespace Museexmatch
                 if (Util.PropertyExists(config, "preferSyncedLyrics"))
                     PreferSyncedLyrics = (bool)config.preferSyncedLyrics;
                 if (Util.PropertyExists(config, "onlySyncedLyrics"))
-                    OnlySyncedLyrics = (bool)config.onlySyncedLyrics;
+                    OnlySyncedLyrics = true || (bool)config.onlySyncedLyrics;
 
                 if (Util.PropertyExists(config, "hmacSHA1Key"))
                     HmacSHA1Key = config.hmacSHA1Key;
@@ -94,7 +94,7 @@ namespace Museexmatch
             parameters.Add("referal", "utm_source=google-play&utm_medium=organic");
             parameters.Add("root", "0");
             parameters.Add("sideloaded", "0");
-            parameters.Add("build_number", "2023110301");
+            parameters.Add("build_number", "2024050901");
             parameters.Add("guid", Util.GenerateHex(16));
             parameters.Add("lang", "en_US");
             parameters.Add("model", "manufacturer/Google brand/Pixel model/Whatever");
@@ -243,12 +243,11 @@ namespace Museexmatch
             {
                 try
                 {
-                    var exists = data["track.richsync.get"].message.header.status_code;
-                    if (exists == 200)
+                    var available = data["track.subtitles.get"].message.header.available;
+                    if (available == 1)
                     {
                         Logger.Info("Found synced lyrics");
-                        var richsync_result = data["track.richsync.get"].message.body.richsync.richsync_body;
-                        result = Util.ConvertRichsyncToLRC(richsync_result);
+                        result = data["track.subtitles.get"].message.body.subtitle_list[0].subtitle.subtitle_body;
                     } 
                 }
                 catch (Exception ex)
