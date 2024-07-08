@@ -8,14 +8,14 @@ This plugin is made and published exclusively for educational purposes. The plug
 Using private Musixmatch API to get lyrics. Synced lyrics are supported.
 
 ### Installation
-Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory.
+Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory. For portable version use `Plugins` directory.
 
 ### Activation
 Preferences -> Plugins -> Enable Museexmatch.  
 Preferences -> Tags (2) -> Lyrics -> Musixmatch via Museexmatch.
 
 ### Configuration
-Create museexmatch.conf in the Plugins directory and use this template:
+Create museexmatch.conf in the `%APPDATA%\MusicBee\` directory (`AppData` for portable) and use this template:
 
     {
         "allowedDistance": 5,
@@ -44,9 +44,11 @@ Restart MusicBee to apply changes.
 4. Plugin strips down the artist using the delimiters (if provided), searches and handles aliases.
 
 ### Log
-You can find log at `%APPDATA%\MusicBee\museexmatch.log`.
+You can find log at `%APPDATA%\MusicBee\museexmatch.log` (`AppData\museexmatch.log` for portable).
 
 ### Shoutouts
 https://github.com/toptensoftware/JsonKit
 
 https://nlog-project.org/
+
+https://github.com/mono/taglib-sharp

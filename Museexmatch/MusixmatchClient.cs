@@ -29,7 +29,7 @@ namespace Museexmatch
         private bool VerifyAlbum = false;
         private bool AddLyricsSource = false;
         private bool TrimTitle = false;
-        private bool PreferSyncedLyrics = true;
+        private bool PreferSyncedLyrics = false;
         private bool OnlySyncedLyrics = false;
         public MusixmatchClient(string lyricsProviderName = null)
         {
@@ -156,10 +156,11 @@ namespace Museexmatch
 
             if (TrimTitle) { title = Util.Trim(title); }
 
-            Logger.Info("Attempting to search for {aritst} - {title} ({album})", artist, title, album);
+            Logger.Info("Attempting to search for {aritst} - {title} ({album}) in tracks", artist, title, album);
 
-            string result = search(artist, title, album);
-            if (string.IsNullOrEmpty(result) && Delimiters.Length > 0)
+            dynamic match = findInMatches(searchInTracks(artist, title, album), artist, title, album);
+
+            if (match == null && Delimiters.Length > 0)
             {
                 var editedArtist = artist;
 
@@ -167,17 +168,47 @@ namespace Museexmatch
 
                 if (editedArtist != artist)
                 {
-                    Logger.Info("Nothing found, attempting to search for {aritst} - {title} ({album})", artist, title, album);
+                    Logger.Info("Nothing found, attempting to search for {aritst} - {title} ({album}) in tracks", editedArtist, title, album);
 
-                    result = search(artist, title, album);
+                    match = findInMatches(searchInTracks(editedArtist, title, album), artist, title, album);
                 }
             }
-            if (string.IsNullOrEmpty(result)) { Logger.Info("Nothing found at all"); }
-            else { Logger.Info("Got a hit"); }
+
+            if (match == null)
+            {
+                Logger.Info("Attempting to search for {aritst} - {title} ({album}) in macro", artist, title, album);
+                
+                match = findInMatches(searchMacro(artist, title, album), artist, title, album);
+            }
+
+            if (match == null && Delimiters.Length > 0)
+            {
+                var editedArtist = artist;
+
+                foreach (char delimiter in Delimiters) editedArtist = editedArtist.Split(delimiter)[0].Trim();
+
+                if (editedArtist != artist)
+                {
+                    Logger.Info("Nothing found, attempting to search for {aritst} - {title} ({album}) in macro", editedArtist, title, album);
+
+                    match = findInMatches(searchMacro(editedArtist, title, album), artist, title, album);
+                }
+            }
+
+            if (match == null) { 
+                Logger.Info("Nothing found at all");
+                return null;
+            }
+
+            string result = loadLyrics(match.track_id.ToString());
+
+            if (result != null) Logger.Info("Got a hit");
+            else Logger.Info("Match was found but no lyrics");
+
             return result;
         }
 
-        private string search(string artist, string title, string album)
+        private dynamic searchInTracks(string artist, string title, string album)
         {
             Logger.Debug("artist={artist}, title={title}, album={album}", artist, title, album);
 
@@ -193,10 +224,32 @@ namespace Museexmatch
             dynamic searchResults = MusixmatchRequest("track.search", req);
             
             var matches = searchResults.track_list;
-            if (matches.Count == 0) { return null; }
 
-            dynamic chosenMatch = null;
+            return matches;
+        }
 
+
+        private dynamic searchMacro(string artist, string title, string album)
+        {
+            Logger.Debug("artist={artist}, title={title}, album={album}", artist, title, album);
+
+            var req = new NameValueCollection();
+            req.Add("q", artist + " " + title);
+            req.Add("part", "track_artist,artist_image");
+            req.Add("track_fields_set", "android_track_list");
+            req.Add("artist_fields_set", "android_track_list_artist");
+            req.Add("page", "1");
+            req.Add("page_size", "100");
+
+            dynamic searchResults = MusixmatchRequest("macro.search", req);
+
+            var matches = searchResults.macro_result_list.track_list;
+
+            return matches;
+        }
+
+        private dynamic findInMatches(dynamic matches, string artist, string title, string album)
+        {
             foreach (var _match in matches)
             {
                 var match = _match.track;
@@ -205,35 +258,27 @@ namespace Museexmatch
                 if (VerifyAlbum && match.album_name.ToLower() != album.ToLower()) continue;
 
                 if (Util.ValidateResult(artist, title, match.artist.artist_name, match.track_name, AllowedDistance))
-                {
-                    chosenMatch = match;
-                    break;
-                }
+                    return match;
 
                 foreach (var _alias in match.artist.artist_alias_list)
                 {
                     var alias = _alias;
                     if (_alias is ExpandoObject) alias = _alias.artist_alias;
                     if (Util.ValidateResult(artist, title, alias, match.track_name, AllowedDistance))
-                    {
-                        chosenMatch = match;
-                        break;
-                    }
+                        return match;
                 }
-
-                if (chosenMatch != null) break;
             }
 
-            if (chosenMatch == null)
-            {
-                Logger.Info("No results for this search");
+            Logger.Info("No results for this search");
 
-                return null;
-            }
+            return null;
+        }
 
-            req.Clear();
-            req.Add("track_id", chosenMatch.track_id.ToString());
-            req.Add("optional_calls", "track.richsync");
+        private string loadLyrics(string trackId)
+        {
+
+            var req = new NameValueCollection();
+            req.Add("track_id", trackId);
 
             dynamic lyrics = MusixmatchRequest("macro.subtitles.get", req);
             var data = (IDictionary<string, dynamic>)lyrics.macro_calls;
@@ -249,14 +294,15 @@ namespace Museexmatch
                     {
                         Logger.Info("Found synced lyrics");
                         result = data["track.subtitles.get"].message.body.subtitle_list[0].subtitle.subtitle_body;
-                    } 
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.Info($"Error getting richsync lyrics: {ex.Message}");
                 }
             }
-            if (string.IsNullOrEmpty(result)) {
+            if (string.IsNullOrEmpty(result))
+            {
                 if (OnlySyncedLyrics) return null;
                 result = data["track.lyrics.get"].message.body.lyrics.lyrics_body;
 

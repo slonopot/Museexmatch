@@ -11,8 +11,8 @@ namespace MusicBeePlugin
     {
         private static Logger Logger;
 
-        public static string configFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\Plugins\museexmatch.conf");
-        public static string logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"MusicBee\museexmatch.log");
+        public static string configFile;
+        public static string logFile;
         public static string name = "Museexmatch";
 
         private MusicBeeApiInterface musicBee;
@@ -24,15 +24,21 @@ namespace MusicBeePlugin
             musicBee = new MusicBeeApiInterface();
             musicBee.Initialise(apiPtr);
 
+            configFile = Path.Combine(musicBee.Setting_GetPersistentStoragePath(), @"museexmatch.conf");
+            logFile = Path.Combine(musicBee.Setting_GetPersistentStoragePath(), @"museexmatch.log");
+
             info.PluginInfoVersion = PluginInfoVersion;
             info.Name = name;
-            info.Description = "Musixmatch support for MusicBee";
+
+            info.VersionMajor = 1;
+            info.VersionMinor = 1;
+            info.Revision = 0;
+
+            info.Description = $"Musixmatch support for MusicBee [{info.VersionMajor}.{info.VersionMinor}.{info.Revision}]";
             info.Author = "slonopot";
             info.TargetApplication = "MusicBee";
             info.Type = PluginType.LyricsRetrieval;
-            info.VersionMajor = 1;
-            info.VersionMinor = 0;
-            info.Revision = 6;
+
             info.MinInterfaceVersion = 20;
             info.MinApiRevision = 25;
             info.ReceiveNotifications = ReceiveNotificationFlags.StartupOnly;
@@ -43,7 +49,7 @@ namespace MusicBeePlugin
                 var target = new NLog.Targets.FileTarget(name)
                 {
                     FileName = logFile,
-                    Layout = "${date} | ${level} | ${callsite} | ${message}",
+                    Layout = "${date} | ${level} | ${callsite} | ${message} ${exception:format=tostring}",
                     DeleteOldFileOnStartup = true,
                     Name = name
                 };
@@ -83,14 +89,40 @@ namespace MusicBeePlugin
             return new string[] { MuseexmatchLyricsProvider };
         }
 
+        private (string, string, string) TryGetFileMetadata(String source)
+        {
+            var tfile = TagLib.File.Create(source);
+            string title = tfile.Tag.Title;
+            string artist = String.Join(" & ", tfile.Tag.AlbumArtists);
+            string album = tfile.Tag.Album;
+            //int duration = (int)tfile.Properties.Duration.TotalSeconds;
+            Logger.Debug("Extracted metadata from {source}: artist={artist}, title={title}, album={album}", source, artist, title, album);
+            return (artist, title, album);
+        }
+
         public String RetrieveLyrics(String source, String artist, String title, String album, bool preferSynced, String providerName)
         {
             Logger.Debug("source={source}, artist={artist}, title={title}, album={album}, preferSynced={preferSynced}, providerName={providerName}", source, artist, title, album, preferSynced, providerName);
 
             if (providerName != MuseexmatchLyricsProvider) return null;
 
-            var lyrics = musixmatchClient.getLyrics(artist, title, album);
-            return lyrics;
+            if (source != string.Empty)
+            {
+                try { (artist, title, album) = TryGetFileMetadata(source); }
+                catch { Logger.Debug("Failed to extract metadata from {source}", source); }
+            }
+
+            try
+            {
+                var lyrics = musixmatchClient.getLyrics(artist, title, album);
+                return lyrics;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug(ex);
+                return null;
+            }
+
         }
 
         public void ReceiveNotification(String source, NotificationType type) { }
