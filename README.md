@@ -6,6 +6,7 @@ This plugin is made and published exclusively for educational purposes. The plug
 
 ### Features
 Using private Musixmatch API to get lyrics. Synced lyrics are supported.
+Pulling metadata from the file itself for MusicBee 3.6.8922+ which is not the main release at the moment.
 
 ### Installation
 Get a release and extract all .dll files into `%APPDATA%\MusicBee\Plugins\` directory. For portable version use `Plugins` directory.
