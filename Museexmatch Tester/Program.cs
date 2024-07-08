@@ -7,7 +7,7 @@ namespace Museexmatch_Tester
         static void Main(string[] args)
         {
             MusixmatchClient client = new MusixmatchClient();
-            var result = client.getLyrics("Metallica", "Hit The Lights", "");
+            var result = client.getLyrics("Lily the Kid", "Ghost", "");
             return;
         }
     }

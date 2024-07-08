@@ -5,7 +5,12 @@ VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Museexmatch", "Museexmatch\Museexmatch.csproj", "{DE470EFE-2445-4727-9E10-DBDA5AE90E72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Museexmatch Tester", "Museexmatch Tester\Museexmatch Tester.csproj", "{782A8618-9F26-47D2-B54D-E7AD89D24A94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Museexmatch Tester", "Museexmatch Tester\Museexmatch Tester.csproj", "{782A8618-9F26-47D2-B54D-E7AD89D24A94}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A80766CD-B3DF-410C-9176-824FA83DEC78}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
