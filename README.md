@@ -25,7 +25,8 @@ Create museexmatch.conf in the `%APPDATA%\MusicBee\` directory (`AppData` for po
         "addLyricsSource": false,
         "trimTitle": false,
         "preferSyncedLyrics": false,
-        "onlySyncedLyrics": false
+        "onlySyncedLyrics": false,
+        "trustMatcher": true
     }
 
 museexmatch.conf includes several options. You are allowed to use only ones you need, just omit the line and don't forget about commas in JSON.
@@ -36,6 +37,7 @@ museexmatch.conf includes several options. You are allowed to use only ones you 
 5. Configurable title trim. This option will remove all content in brackets from the title. By default MusicBee removes only features in the round brackets, this option will remove all content in `[]`, `{}`, `<>` and `()`.
 6. Configurable synced lyrics preference. Plugin will return synced lyrics in LRC format. Advanced LRC (split by words) is not supported by MusicBee.
 7. Configurable synced lyrics preference (forced). Plugin will only return synced lyrics in LRC format and pass the request to another plugin if not found. This allows to choose synced Musixmatch first and text Genius second, for example.
+8. Configurable Matcher API trust. Setting to `false` will disable it, left just in case it will go crazy on a collection.
 Restart MusicBee to apply changes.
 
 ### Logic
