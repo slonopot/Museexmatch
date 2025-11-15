@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Topten.JsonKit;
 
@@ -20,7 +21,7 @@ namespace Museexmatch
 
         private string LyricsProviderName;
 
-        private string HmacSHA1Key = "removed by lyrics police";
+        private string HmacSHA1Key = Encoding.UTF8.GetString(Convert.FromBase64String(new String("=cCKiRSNnJ0RfJlJz4UK04GU3YTO".Reverse().ToArray())));
         private string ApiURL = "https://apic.musixmatch.com/ws/1.1/";
         private string UserToken = null;
 
@@ -69,26 +70,32 @@ namespace Museexmatch
                 Logger.Info("Configuration file was used: allowedDistance={allowedDistance}, delimiters={delimiters}, verifyAlbum={verifyAlbum}, addLyricsSource={addLyricsSource}, trimTitle={trimTitle}, preferSyncedLyrics={preferSyncedLyrics}, onlySyncedLyrics={onlySyncedLyrics}", AllowedDistance, Delimiters, VerifyAlbum, AddLyricsSource, TrimTitle, PreferSyncedLyrics, OnlySyncedLyrics);
             }
             else { Logger.Info("No configuration file was provided, defaults were used"); }
-            if (string.IsNullOrEmpty(UserToken))
+            //if (string.IsNullOrEmpty(UserToken))
             {
-                UserToken = GetUserToken();
-
-                dynamic config;
-                if (File.Exists(Plugin.configFile))
-                {
-                    string data = File.ReadAllText(Plugin.configFile);
-                    config = Json.Parse<object>(data);
-                    config.userToken = UserToken;
-                    Json.WriteFile(Plugin.configFile, config);
-                }
-
+                ReissueUserToken();
                 Logger.Info("Got new user token");
             }
            
         }
 
+        private void ReissueUserToken()
+        {
+            UserToken = GetUserToken();
+
+            dynamic config;
+            if (File.Exists(Plugin.configFile))
+            {
+                string data = File.ReadAllText(Plugin.configFile);
+                config = Json.Parse<object>(data);
+                config.userToken = UserToken;
+                Json.WriteFile(Plugin.configFile, config);
+            }
+        }
+
         private string GetUserToken()
         {
+            UserToken = null;
+
             NameValueCollection parameters = new NameValueCollection();
             parameters.Add("adv_id", Guid.NewGuid().ToString());
             parameters.Add("referal", "utm_source=google-play&utm_medium=organic");
@@ -145,6 +152,15 @@ namespace Museexmatch
                 result = Json.Parse<object>(content);
             }
             catch { throw; }
+
+            var statusCode = result.message.header.status_code;
+
+            if (statusCode != 200)
+            {
+                //if (Util.PropertyExists(result.message.header, "hint") && result.message.header.hint == "captcha") ReissueUserToken();
+                Logger.Info("Seems like a ban, you might want to change your IP (restart router, toggle airplane mode): status_code {code}", statusCode);
+            }
+
             return result.message.body;
         }
 

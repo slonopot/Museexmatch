@@ -31,7 +31,7 @@ namespace MusicBeePlugin
             info.Name = name;
 
             info.VersionMajor = 1;
-            info.VersionMinor = 1;
+            info.VersionMinor = 2;
             info.Revision = 0;
 
             info.Description = $"Musixmatch support for MusicBee [{info.VersionMajor}.{info.VersionMinor}.{info.Revision}]";
@@ -89,15 +89,17 @@ namespace MusicBeePlugin
             return new string[] { MuseexmatchLyricsProvider };
         }
 
-        private (string, string, string) TryGetFileMetadata(String source)
+        private (string, string, string, string) TryGetFileMetadata(String source)
         {
             var tfile = TagLib.File.Create(source);
             string title = tfile.Tag.Title;
-            string artist = String.Join(" & ", tfile.Tag.AlbumArtists);
+            string artist = String.Join(" & ", tfile.Tag.Performers);
+            string albumArtist = null;
+            if (tfile.Tag.AlbumArtists.Length > 0)
+                albumArtist = String.Join(" & ", tfile.Tag.AlbumArtists);
             string album = tfile.Tag.Album;
-            //int duration = (int)tfile.Properties.Duration.TotalSeconds;
-            Logger.Debug("Extracted metadata from {source}: artist={artist}, title={title}, album={album}", source, artist, title, album);
-            return (artist, title, album);
+            Logger.Debug("Extracted metadata from {source}: artist={artist}, albumArtist={albumArtist}, title={title}, album={album}", source, artist, albumArtist, title, album);
+            return (artist, albumArtist, title, album);
         }
 
         public String RetrieveLyrics(String source, String artist, String title, String album, bool preferSynced, String providerName)
@@ -106,15 +108,19 @@ namespace MusicBeePlugin
 
             if (providerName != MuseexmatchLyricsProvider) return null;
 
+            string albumArtist = null;
+
             if (source != string.Empty)
             {
-                try { (artist, title, album) = TryGetFileMetadata(source); }
+                try { (artist, albumArtist, title, album) = TryGetFileMetadata(source); }
                 catch { Logger.Debug("Failed to extract metadata from {source}", source); }
             }
 
             try
             {
                 var lyrics = musixmatchClient.getLyrics(artist, title, album);
+                if (string.IsNullOrEmpty(lyrics) && !string.IsNullOrEmpty(albumArtist) && artist != albumArtist)
+                    lyrics = musixmatchClient.getLyrics(albumArtist, title, album);
                 return lyrics;
             }
             catch (Exception ex)
